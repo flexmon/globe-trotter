@@ -1,0 +1,71 @@
+# parquet-to-h3f-example.yaml
+#
+# Concrete example configuration for converting Parquet files into H3Flex (.h3f)
+# hexagonal cell grid binary format for Globe Trotter.
+#
+# Usage:
+#   node scripts/parquet-to-flex.js scripts/parquet-to-h3f-example.yaml
+
+# ─── Source Parquet Files ───────────────────────────────────────────────────
+source:
+  # Local directory containing .parquet files (all matching files are read)
+  path: './data/h3_hex_export/'
+  pattern: '*.parquet'
+
+  # Or a GCS prefix (downloads and processes automatically):
+  # path: "gs://my-bucket/exports/h3_grid/"
+  # download_concurrency: 5
+
+# ─── H3Flex Geometry Configuration ──────────────────────────────────────────
+geometry:
+  # Output format: "h3f" for hexagonal grid visualization
+  type: h3f
+
+  # Parquet column containing pre-computed H3 cell IDs (hex strings, e.g. "8928308280fffff")
+  cell_column: 'h3_index'
+
+  # H3 resolution level of the cell IDs (0–15, typically 4, 5, or 6)
+  resolution: 5
+
+# ─── Time & Epoch Sharding ──────────────────────────────────────────────────
+# (Omit this section entirely for static-only datasets without temporal animation)
+time:
+  # Column containing epoch index or Unix timestamp per row
+  epoch_column: 'epoch'
+
+  # Seconds between consecutive epochs (used for playback controls and axis labels)
+  epoch_interval: 300 # 5 minutes
+
+  # Optional: column for absolute wall-clock timestamp (Unix seconds)
+  start_timestamp_column: 'timestamp'
+
+# ─── Column Schema ──────────────────────────────────────────────────────────
+columns:
+  # Static columns: one value per H3 cell (constant across all time epochs)
+  static:
+    - source: 'region'
+      type: string
+
+    - source: 'cell_area_sqkm'
+      output: 'area_km2'
+      type: float32
+
+  # Temporal columns: one value per H3 cell per epoch (stored in .shard files)
+  temporal:
+    - source: 'served_mbps'
+      type: float32
+
+    - source: 'demand_mbps'
+      type: float32
+
+# ─── Output Directory & Manifest ────────────────────────────────────────────
+output:
+  path: './public/data/h3_grid_dataset/'
+  base_name: 'h3_grid_dataset'
+  epochs_per_shard: 60
+  gzip_level: 1
+  mesh_dir: './public/meshes/'
+  active_metric: 'served_mbps'
+
+manifest:
+  description: 'H3Flex Hexagonal Grid Data - Served & Unmet Demand'

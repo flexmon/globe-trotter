@@ -1,0 +1,24 @@
+{
+  "semi": true,
+  "singleQuote": true,
+  "trailingComma": "es5",
+  "tabWidth": 2,
+  "useTabs": false,
+  "printWidth": 100,
+  "bracketSpacing": true,
+  "arrowParens": "always",
+  "endOfLine": "lf",
+  "sortPackageJson": false,
+  "ignorePatterns": [
+    "node_modules/**",
+    "dist/**",
+    "lib/packages/*/dist/**",
+    "build/**",
+    "coverage/**",
+    "*.min.js",
+    "examples/**",
+    "public/**",
+    "tmp/**",
+    "tmp_serde_test/**"
+  ]
+}

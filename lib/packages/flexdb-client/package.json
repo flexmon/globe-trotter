@@ -1,0 +1,21 @@
+{
+  "name": "@globe-trotter/flexdb-client",
+  "version": "0.1.0",
+  "description": "Arrow IPC HTTP client for FlexDB — SQL queries on *Flex binary formats",
+  "type": "module",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "keywords": [
+    "globe-trotter",
+    "flexdb",
+    "arrow",
+    "sql",
+    "streaming"
+  ],
+  "license": "Apache-2.0",
+  "peerDependencies": {
+    "apache-arrow": ">=17.0.0"
+  }
+}

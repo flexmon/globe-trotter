@@ -1,0 +1,53 @@
+{
+  "name": "globe-trotter",
+  "version": "1.0.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "description": "Ultra-high-performance GPU-accelerated 4D globe engine",
+  "type": "module",
+  "workspaces": [
+    "lib/packages/*",
+    "examples/*"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build && mv dist/index.html dist/globe-trotter.html",
+    "build:single": "SINGLE=true vite build && mv dist/index.html dist/globe-trotter.html && cd dist && ln -snf ../public/* .",
+    "build:lib": "node scripts/build-lib.js",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
+    "format": "oxfmt",
+    "format:check": "oxfmt --check",
+    "bench": "node bench/render-60-frames.mjs",
+    "generate:gfb": "node scripts/mobile-demand-sim/generate-gfb-data.js",
+    "generate:h3": "node --max-old-space-size=8192 scripts/mobile-demand-sim/generate-h3-data.js",
+    "generate:mfb": "node scripts/mobile-demand-sim/generate-mfb-data.js",
+    "generate": "npm run generate:gfb && npm run generate:h3 && npm run generate:mfb",
+    "example:vue": "npm run dev --workspace examples/vue",
+    "example:react": "npm run dev --workspace examples/react",
+    "setup": "npm install && node scripts/interactive-setup.js && node examples/ensure-data.js && npm run dev"
+  },
+  "devDependencies": {
+    "@google-cloud/storage": "7.21.0",
+    "@rolldown/binding-darwin-arm64": "1.1.5",
+    "h3-js": "4.5.0",
+    "oxfmt": "0.59.0",
+    "oxlint": "1.74.0",
+    "parquet-wasm": "0.7.2",
+    "uuid": "14.0.1",
+    "vite": "8.1.5",
+    "vite-plugin-singlefile": "2.3.3",
+    "vitest": "4.1.10"
+  },
+  "dependencies": {
+    "apache-arrow": "21.1.0",
+    "earcut": "3.2.3",
+    "kdbush": "4.1.0",
+    "rbush": "4.0.1",
+    "yaml": "2.9.0"
+  },
+  "overrides": {}
+}

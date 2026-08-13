@@ -1,0 +1,54 @@
+{
+  "name": "@globe-trotter/core",
+  "version": "1.0.0",
+  "description": "GPU-accelerated 4D globe rendering engine — framework-agnostic core library",
+  "type": "module",
+  "main": "./dist/globe-trotter.umd.js",
+  "module": "./dist/globe-trotter.es.js",
+  "types": "./types/index.d.ts",
+  "source": "./src/index.js",
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "import": "./dist/globe-trotter.es.js",
+      "require": "./dist/globe-trotter.umd.js",
+      "default": "./dist/globe-trotter.es.js"
+    },
+    "./advanced": {
+      "types": "./types/advanced.d.ts",
+      "import": "./dist/globe-trotter-advanced.es.js",
+      "require": "./dist/globe-trotter-advanced.umd.js",
+      "default": "./dist/globe-trotter-advanced.es.js"
+    }
+  },
+  "files": [
+    "dist",
+    "src",
+    "types"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build && GT_ENTRY=advanced vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "8.1.5"
+  },
+  "publishConfig": {
+    "registry": "https://<AR_REGION>-npm.pkg.dev/<AR_PROJECT_ID>/<AR_REPO_NAME>/"
+  },
+  "keywords": [
+    "globe",
+    "webgl2",
+    "geospatial",
+    "h3",
+    "h3flex",
+    "geoflex",
+    "gis",
+    "map",
+    "3d",
+    "gpu",
+    "visualization"
+  ],
+  "license": "Apache-2.0"
+}

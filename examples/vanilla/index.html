@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Globe Trotter — Vanilla Example</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        canvas {
+            width: 100vw;
+            height: 100vh;
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="globe"></canvas>
+
+    <script type="module">
+        import { GlobeTrotterEngine } from '@globe-trotter/core';
+        import config, { mapboxToken, googleMapsApiKey } from '../globe-config.js';
+
+        const engine = new GlobeTrotterEngine(document.getElementById('globe'), {
+            mapboxToken,
+            googleMapsApiKey,
+            basePath: '/globe-trotter/',
+            camera: { center: [39.0, -98.0], altitude: 12000 },
+            time: { enabled: true, autoplay: true, speed: 60 },
+            ui: true,
+            uiWidgets: {
+                footer: true, layers: true, geocoder: true, time: true,
+                loadingScreen: {
+                    logoUrl: `${import.meta.env.BASE_URL}assets/example-logo.svg`,
+                    iconUrl: `${import.meta.env.BASE_URL}assets/example-icon.svg`,
+                    subtitle: 'Vanilla Example',
+                },
+            },
+        });
+
+        await engine.loadConfig(config);
+        window.globe = engine;
+    </script>
+</body>
+
+</html>

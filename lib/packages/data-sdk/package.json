@@ -1,0 +1,28 @@
+{
+  "name": "@globe-trotter/data-sdk",
+  "version": "0.1.0",
+  "description": "High-performance data generation SDK for Globe Trotter binary formats (H3F, GFB, MFB)",
+  "type": "module",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./encoders": "./src/encoders/index.js",
+    "./workers/*": "./src/workers/*"
+  },
+  "scripts": {},
+  "keywords": [
+    "globe-trotter",
+    "geospatial",
+    "h3",
+    "binary",
+    "gpu",
+    "data-pipeline"
+  ],
+  "license": "Apache-2.0",
+  "peerDependencies": {
+    "h3-js": "^4.0.0"
+  },
+  "dependencies": {
+    "earcut": "^3.2.3"
+  }
+}

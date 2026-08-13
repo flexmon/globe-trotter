@@ -1,0 +1,2055 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Globe Trotter — 4D Time Series Big Data Visualization at GPU Scale | Open Source</title>
+    <meta
+      name="description"
+      content="Globe Trotter is an open-source, agentic-first GPU-accelerated 4D globe engine purpose-built for massive geospatial time series visualization. AI agents operate it end-to-end — from raw data ingestion to a published globe. Flex binary formats store unlimited epochs of animation data — direct to GPU, zero parsing, 60 FPS in the browser. No servers. No tile infrastructure."
+    />
+    <meta
+      name="keywords"
+      content="Globe Trotter, 4D visualization, time series, big data, geospatial, GIS, WebGPU, WebGL2, H3Flex, GeoFlex, MetricFlex, Flex formats, GPU zero-copy, compute shaders, Agentic AI, open source, H3, sensor networks, IoT, temporal visualization"
+    />
+    <meta name="author" content="Shawn Owston" />
+
+    <!-- Open Graph -->
+    <meta
+      property="og:title"
+      content="Globe Trotter — 4D Time Series Big Data Visualization at GPU Scale"
+    />
+    <meta
+      property="og:description"
+      content="1.47M H3 hexagons × 1,440 time epochs × multiple metrics. GPU zero-copy Flex formats. 60 FPS in your browser. Open source."
+    />
+    <meta property="og:type" content="article" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      /* ─── Reset & Base ─── */
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        /* Color palette */
+        --navy: #202e39;
+        --grey-sub: #696969;
+        --blue-accent: #006ead;
+        --blue-dark: #003d5c;
+        --bg: #ffffff;
+        --bg-alt: #f5f7fa;
+        --border: #e0e4e8;
+        --teal: #00838f;
+        --teal-light: #4fb3bf;
+        --green: #1a9e5a;
+        --orange: #e07b1a;
+
+        /* Typography */
+        --font-heading: 'Source Sans 3', 'Segoe UI', sans-serif;
+        --font-body: 'Source Sans 3', 'Segoe UI', sans-serif;
+        --font-mono: 'SF Mono', 'Fira Code', 'Courier New', monospace;
+      }
+
+      html {
+        font-size: 16px;
+        scroll-behavior: smooth;
+      }
+
+      body {
+        font-family: var(--font-body);
+        color: var(--navy);
+        background: var(--bg);
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      /* ─── Top Bar ─── */
+      .top-bar {
+        background: var(--navy);
+        color: #fff;
+        font-size: 0.75rem;
+        letter-spacing: 0.04em;
+        padding: 0.5rem 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .top-bar a {
+        color: #cbd5e0;
+        text-decoration: none;
+        margin-left: 1.5rem;
+        transition: color 0.2s;
+      }
+
+      .top-bar a:hover {
+        color: #fff;
+      }
+
+      /* ─── Header / Nav ─── */
+      .site-header {
+        background: #fff;
+        border-bottom: 1px solid var(--border);
+        padding: 1rem 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      }
+
+      .logo-area {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+
+      .logo-area svg {
+        height: 28px;
+        width: auto;
+      }
+
+      .logo-text {
+        font-family: var(--font-heading);
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--navy);
+        text-decoration: none;
+      }
+
+      .logo-text span {
+        color: var(--blue-accent);
+      }
+
+      .nav-links {
+        display: flex;
+        gap: 1.5rem;
+      }
+
+      .nav-links a {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--navy);
+        text-decoration: none;
+        transition: color 0.2s;
+      }
+
+      .nav-links a:hover {
+        color: var(--blue-accent);
+      }
+
+      /* ─── Breadcrumb ─── */
+      .breadcrumb {
+        max-width: 840px;
+        margin: 1.5rem auto 0;
+        padding: 0 1.5rem;
+        font-size: 0.8rem;
+        color: #465967;
+      }
+
+      .breadcrumb a {
+        color: #465967;
+        text-decoration: none;
+      }
+      .breadcrumb a:hover {
+        color: var(--blue-accent);
+      }
+      .breadcrumb .sep {
+        margin: 0 0.4rem;
+      }
+
+      /* ─── Article ─── */
+      .article-container {
+        max-width: 840px;
+        margin: 0 auto;
+        padding: 0 1.5rem 4rem;
+      }
+
+      .article-headline {
+        font-family: var(--font-heading);
+        font-size: 2.5rem;
+        font-weight: 800;
+        line-height: 1.2;
+        color: var(--navy);
+        margin-top: 1.25rem;
+        margin-bottom: 1rem;
+      }
+
+      .article-subheadline {
+        font-family: var(--font-body);
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--grey-sub);
+        line-height: 1.55;
+        margin-bottom: 2rem;
+      }
+
+      /* ─── Demo / Hero Section ─── */
+      .demo-section {
+        margin-bottom: 0;
+        border-radius: 12px 12px 0 0;
+        overflow: hidden;
+        background: #060f1e;
+        position: relative;
+      }
+
+      .demo-video {
+        display: block;
+        width: 100%;
+        height: auto;
+        max-height: 560px;
+        object-fit: cover;
+        border-radius: 12px 12px 0 0;
+      }
+
+      .demo-caption {
+        background: linear-gradient(to right, #003d5c, #006ead);
+        padding: 0.65rem 1.25rem;
+        display: flex;
+        align-items: baseline;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+      }
+
+      .demo-caption-label {
+        color: rgba(255, 255, 255, 0.95);
+        font-family: var(--font-heading);
+        font-size: 0.85rem;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+
+      .demo-caption-sub {
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 0.78rem;
+        line-height: 1.4;
+      }
+
+      /* ─── Big Data Stat Bar ─── */
+      .stat-bar {
+        background: linear-gradient(90deg, #003d5c 0%, #006ead 50%, #00838f 100%);
+        border-radius: 0 0 12px 12px;
+        padding: 1.25rem 2rem;
+        margin-bottom: 2.5rem;
+        display: flex;
+        justify-content: space-around;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+      }
+
+      .stat-item {
+        text-align: center;
+        color: #fff;
+      }
+
+      .stat-number {
+        display: block;
+        font-family: var(--font-heading);
+        font-size: 1.6rem;
+        font-weight: 800;
+        line-height: 1;
+        color: #fff;
+        letter-spacing: -0.02em;
+      }
+
+      .stat-number sup {
+        font-size: 0.9rem;
+        font-weight: 700;
+        vertical-align: super;
+      }
+
+      .stat-label {
+        display: block;
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.7);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        margin-top: 0.2rem;
+      }
+
+      .stat-divider {
+        width: 1px;
+        background: rgba(255, 255, 255, 0.2);
+        align-self: stretch;
+        margin: 0;
+      }
+
+      /* ─── Body Content ─── */
+      .article-dateline {
+        font-weight: 700;
+        color: var(--navy);
+      }
+
+      .article-body p {
+        font-size: 1rem;
+        line-height: 1.7;
+        color: var(--navy);
+        margin-bottom: 1.25rem;
+      }
+
+      .article-body a {
+        color: var(--blue-accent);
+        text-decoration: none;
+        border-bottom: 1px solid transparent;
+        transition: border-color 0.2s;
+      }
+
+      .article-body a:hover {
+        border-bottom-color: var(--blue-accent);
+      }
+
+      .article-body h2 {
+        font-family: var(--font-heading);
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--navy);
+        margin-top: 2.5rem;
+        margin-bottom: 1rem;
+        line-height: 1.3;
+      }
+
+      .article-body h3 {
+        font-family: var(--font-heading);
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--navy);
+        margin-top: 2rem;
+        margin-bottom: 0.75rem;
+      }
+
+      /* ─── Callout / Highlight Boxes ─── */
+      .callout {
+        background: var(--bg-alt);
+        border-left: 4px solid var(--blue-accent);
+        padding: 1.25rem 1.5rem;
+        margin: 1.75rem 0;
+        border-radius: 0 8px 8px 0;
+      }
+
+      .callout p {
+        margin-bottom: 0.5rem;
+      }
+      .callout p:last-child {
+        margin-bottom: 0;
+      }
+      .callout strong {
+        color: var(--blue-accent);
+      }
+
+      .callout--teal {
+        border-left-color: var(--teal);
+      }
+      .callout--teal strong {
+        color: var(--teal);
+      }
+
+      .callout--green {
+        border-left-color: var(--green);
+        background: #f0faf5;
+      }
+      .callout--green strong {
+        color: var(--green);
+      }
+
+      /* ─── Flex Format Cards ─── */
+      .flex-format-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 1.25rem;
+        margin: 1.5rem 0 2rem;
+      }
+
+      .flex-card {
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid var(--border);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        transition:
+          box-shadow 0.2s,
+          transform 0.2s;
+      }
+
+      .flex-card:hover {
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+        transform: translateY(-3px);
+      }
+
+      .flex-card-header {
+        padding: 1rem 1.25rem 0.75rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+      }
+
+      .flex-card--h3f .flex-card-header {
+        background: linear-gradient(135deg, #003d5c, #006ead);
+      }
+      .flex-card--gfb .flex-card-header {
+        background: linear-gradient(135deg, #005a40, #00838f);
+      }
+      .flex-card--mfb .flex-card-header {
+        background: linear-gradient(135deg, #6b2d00, #e07b1a);
+      }
+
+      .flex-card-ext {
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.65);
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 4px;
+        padding: 0.2rem 0.45rem;
+        margin-top: 0.15rem;
+        flex-shrink: 0;
+      }
+
+      .flex-card-title {
+        font-family: var(--font-heading);
+        font-size: 1rem;
+        font-weight: 700;
+        color: #fff;
+        line-height: 1.2;
+      }
+
+      .flex-card-title small {
+        display: block;
+        font-size: 0.75rem;
+        font-weight: 400;
+        color: rgba(255, 255, 255, 0.7);
+        margin-top: 0.2rem;
+      }
+
+      .flex-card-body {
+        padding: 1rem 1.25rem 1.25rem;
+        background: #fff;
+      }
+
+      .flex-card-body p {
+        font-size: 0.85rem;
+        line-height: 1.55;
+        color: #3a4a56;
+        margin-bottom: 0.75rem;
+      }
+
+      .flex-card-body p:last-child {
+        margin-bottom: 0;
+      }
+
+      .flex-stat {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        font-size: 0.78rem;
+        font-weight: 600;
+        background: var(--bg-alt);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 0.2rem 0.65rem;
+        margin: 0.15rem 0.15rem 0 0;
+        color: var(--navy);
+      }
+
+      /* ─── Zero-Copy Pipeline ─── */
+      .pipeline-flow {
+        display: flex;
+        align-items: center;
+        gap: 0;
+        margin: 1.5rem 0 2rem;
+        overflow-x: auto;
+        padding-bottom: 0.25rem;
+      }
+
+      .pipeline-stage {
+        flex: 1;
+        min-width: 90px;
+        text-align: center;
+        padding: 0.75rem 0.5rem;
+        background: var(--bg-alt);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+      }
+
+      .pipeline-stage-icon {
+        font-size: 1.4rem;
+        margin-bottom: 0.3rem;
+      }
+
+      .pipeline-stage-label {
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: var(--navy);
+        line-height: 1.3;
+      }
+
+      .pipeline-stage-sub {
+        font-size: 0.65rem;
+        color: var(--grey-sub);
+        margin-top: 0.15rem;
+        font-family: var(--font-mono);
+      }
+
+      .pipeline-arrow {
+        flex-shrink: 0;
+        width: 32px;
+        text-align: center;
+        font-size: 1.1rem;
+        color: var(--blue-accent);
+        font-weight: 700;
+      }
+
+      .pipeline-stage--highlight {
+        background: linear-gradient(135deg, #003d5c, #006ead);
+        border-color: #006ead;
+      }
+
+      .pipeline-stage--highlight .pipeline-stage-label {
+        color: #fff;
+      }
+      .pipeline-stage--highlight .pipeline-stage-sub {
+        color: rgba(255, 255, 255, 0.65);
+      }
+
+      .pipeline-zero-copy-label {
+        text-align: center;
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: var(--teal);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-top: 0.5rem;
+        margin-bottom: 1.5rem;
+      }
+
+      /* ─── Workflow Steps ─── */
+      .workflow-steps {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 1.25rem;
+        margin: 1.5rem 0 2rem;
+      }
+
+      .wf-step {
+        background: var(--bg-alt);
+        border-radius: 10px;
+        padding: 1.5rem;
+        text-align: center;
+        border: 1px solid var(--border);
+        transition:
+          box-shadow 0.2s,
+          transform 0.2s;
+      }
+
+      .wf-step:hover {
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+        transform: translateY(-2px);
+      }
+
+      .wf-step-num {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: var(--blue-accent);
+        color: #fff;
+        font-weight: 700;
+        font-size: 0.95rem;
+        margin-bottom: 0.75rem;
+      }
+
+      .wf-step h4 {
+        font-family: var(--font-heading);
+        font-size: 0.95rem;
+        font-weight: 700;
+        margin-bottom: 0.4rem;
+      }
+
+      .wf-step p {
+        font-size: 0.85rem;
+        color: var(--grey-sub);
+        line-height: 1.5;
+        margin-bottom: 0;
+      }
+
+      /* ─── Comparison Table ─── */
+      .comparison-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1.5rem 0 2rem;
+        font-size: 0.9rem;
+      }
+
+      .comparison-table th {
+        background: var(--navy);
+        color: #fff;
+        font-weight: 600;
+        padding: 0.75rem 1rem;
+        text-align: left;
+      }
+
+      .comparison-table td {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
+
+      .comparison-table tr:nth-child(even) td {
+        background: var(--bg-alt);
+      }
+      .comparison-table .pain {
+        color: #c0392b;
+        font-weight: 600;
+      }
+      .comparison-table .solved {
+        color: #00838f;
+        font-weight: 600;
+      }
+
+      /* ─── YAML / Code Block ─── */
+      .code-block {
+        background: #0a2540;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+        overflow-x: auto;
+        position: relative;
+      }
+
+      .code-block-header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.75rem;
+      }
+
+      .code-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+      }
+      .code-dot--r {
+        background: #ff5f56;
+      }
+      .code-dot--y {
+        background: #ffbd2e;
+      }
+      .code-dot--g {
+        background: #27c93f;
+      }
+
+      .code-block-label {
+        font-size: 0.75rem;
+        color: #8899aa;
+        margin-left: 0.75rem;
+        font-family: var(--font-mono);
+      }
+
+      .code-block pre {
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        color: #e2e8f0;
+        line-height: 1.55;
+        white-space: pre;
+      }
+
+      .code-block .ck {
+        color: #8899aa;
+      }
+      .code-block .cv {
+        color: #7ec8e3;
+      }
+      .code-block .cs {
+        color: #a3e635;
+      }
+      .code-block .cn {
+        color: #f59e42;
+      }
+      .code-block .cc {
+        color: #f472b6;
+      }
+
+      /* ─── Community Audience Tags ─── */
+      .audience-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+        margin: 1.5rem 0 2rem;
+      }
+
+      .audience-card {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 1.25rem 1rem;
+        text-align: center;
+        transition: box-shadow 0.2s;
+      }
+
+      .audience-card:hover {
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+      }
+      .audience-icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .audience-card h4 {
+        font-family: var(--font-heading);
+        font-size: 0.9rem;
+        font-weight: 700;
+        margin-bottom: 0.3rem;
+      }
+
+      .audience-card p {
+        font-size: 0.8rem;
+        color: var(--grey-sub);
+        line-height: 1.45;
+        margin-bottom: 0;
+      }
+
+      /* ─── Project Origin Banner ─── */
+      .innovation-banner {
+        background: linear-gradient(135deg, var(--navy) 0%, var(--blue-dark) 100%);
+        border-radius: 12px;
+        padding: 2.5rem 2rem;
+        margin: 2.5rem 0;
+        color: #fff;
+        display: flex;
+        gap: 2rem;
+        align-items: center;
+      }
+
+      .innovation-banner .inn-icon {
+        flex-shrink: 0;
+        width: 80px;
+        height: 80px;
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+      }
+
+      .innovation-banner h3 {
+        font-family: var(--font-heading);
+        font-size: 1.3rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        color: #fff;
+      }
+
+      .innovation-banner p {
+        font-size: 0.95rem;
+        line-height: 1.6;
+        color: rgba(255, 255, 255, 0.85);
+        margin-bottom: 0;
+      }
+      .innovation-banner a {
+        color: var(--teal-light);
+      }
+
+      /* ─── CTA Section ─── */
+      .cta-section {
+        text-align: center;
+        padding: 3rem 1.5rem 2rem;
+        margin-top: 2rem;
+        border-top: 1px solid var(--border);
+      }
+
+      .cta-section h2 {
+        font-family: var(--font-heading);
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 0.75rem;
+      }
+      .cta-section p {
+        color: var(--grey-sub);
+        margin-bottom: 1.5rem;
+        font-size: 1rem;
+      }
+
+      .cta-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+
+      .cta-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-family: var(--font-heading);
+        font-weight: 600;
+        font-size: 0.95rem;
+        text-decoration: none;
+        transition: all 0.2s;
+      }
+
+      .cta-btn--primary {
+        background: var(--blue-accent);
+        color: #fff;
+      }
+      .cta-btn--primary:hover {
+        background: #005a90;
+      }
+      .cta-btn--secondary {
+        background: #fff;
+        color: var(--navy);
+        border: 1px solid var(--border);
+      }
+      .cta-btn--secondary:hover {
+        border-color: var(--blue-accent);
+        color: var(--blue-accent);
+      }
+      .cta-btn svg {
+        width: 18px;
+        height: 18px;
+      }
+
+      /* ─── Site Footer ─── */
+      .site-footer {
+        background: var(--navy);
+        color: rgba(255, 255, 255, 0.6);
+        padding: 2rem;
+        text-align: center;
+        font-size: 0.8rem;
+      }
+
+      .site-footer a {
+        color: rgba(255, 255, 255, 0.8);
+        text-decoration: none;
+      }
+      .site-footer a:hover {
+        color: #fff;
+      }
+
+      /* ─── Tags ─── */
+      .tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin: 1rem 0;
+      }
+
+      .tag {
+        background: var(--bg-alt);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 0.3rem 0.85rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--grey-sub);
+      }
+
+      /* ─── Responsive ─── */
+      @media (max-width: 768px) {
+        .article-headline {
+          font-size: 1.75rem;
+        }
+        .article-subheadline {
+          font-size: 1.05rem;
+        }
+        .flex-format-grid {
+          grid-template-columns: 1fr;
+        }
+        .workflow-steps {
+          grid-template-columns: 1fr;
+        }
+        .audience-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+        .innovation-banner {
+          flex-direction: column;
+          text-align: center;
+        }
+        .stat-bar {
+          gap: 1rem;
+        }
+        .stat-divider {
+          display: none;
+        }
+        .pipeline-flow {
+          gap: 0.2rem;
+        }
+        .pipeline-arrow {
+          width: 18px;
+          font-size: 0.9rem;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .audience-grid {
+          grid-template-columns: 1fr;
+        }
+        .top-bar {
+          display: none;
+        }
+        .stat-number {
+          font-size: 1.2rem;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- ===== Top Bar ===== -->
+    <div class="top-bar">
+      <span>Globe Trotter — Open Source</span>
+      <div>
+        <a href="https://github.com/flexmon/globe-trotter">GitHub</a>
+        <a href="https://github.com/flexmon/globe-trotter/discussions">Community</a>
+        <a href="https://github.com/flexmon/globe-trotter/blob/main/LICENSE">License</a>
+      </div>
+    </div>
+
+    <!-- ===== Header ===== -->
+    <header class="site-header">
+      <div class="logo-area">
+        <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="18" cy="18" r="16" stroke="#202e39" stroke-width="2" fill="none" />
+          <ellipse cx="18" cy="18" rx="7" ry="16" stroke="#006ead" stroke-width="1.5" fill="none" />
+          <line x1="2" y1="18" x2="34" y2="18" stroke="#006ead" stroke-width="1.5" />
+          <line x1="4" y1="11" x2="32" y2="11" stroke="#00838f" stroke-width="1" />
+          <line x1="4" y1="25" x2="32" y2="25" stroke="#00838f" stroke-width="1" />
+        </svg>
+        <a href="#" class="logo-text">Globe <span>Trotter</span></a>
+      </div>
+      <nav class="nav-links">
+        <a href="https://github.com/flexmon/globe-trotter">GitHub</a>
+        <a href="#flex-formats">Flex Formats</a>
+        <a href="#get-started">Get Started</a>
+        <a href="#community">Community</a>
+      </nav>
+    </header>
+
+    <!-- ===== Breadcrumb ===== -->
+    <div class="breadcrumb">
+      <a href="https://github.com/flexmon/globe-trotter">Globe Trotter</a>
+      <span class="sep">›</span>
+      <a href="#">Blog</a>
+      <span class="sep">›</span>
+      Introducing Globe Trotter
+    </div>
+
+    <!-- ===== Article ===== -->
+    <article class="article-container">
+      <!-- Headline -->
+      <h1 class="article-headline">
+        Globe Trotter: 4D Time Series Big Data Visualization at GPU&nbsp;Scale
+      </h1>
+
+      <!-- Author -->
+      <p style="font-size: 0.9rem; color: #465967; margin-bottom: 1.25rem; font-weight: 600">
+        By <span style="color: #006ead">Shawn Owston</span> · with contributions from
+        <span style="color: #006ead">Tristan Holbrook</span>,
+        <span style="color: #006ead">Anjaneya Gurjar</span>,
+        <span style="color: #006ead">Tyler Davis</span> &amp;
+        <span style="color: #006ead">Emerson Wang</span> · August 13, 2026
+      </p>
+
+      <!-- ===== Project Origin ===== -->
+      <div class="innovation-banner">
+        <div class="inn-icon">🌍</div>
+        <div>
+          <h3>Why We Built This</h3>
+          <p>
+            Globe Trotter originated from the need to visualize massive time-series, spatial datasets
+            across the entire planet, in real time. The existing ecosystem had no path from
+            billion-scale time series data to an interactive browser visualization without either
+            sacrificing scale, sacrificing interactivity, or deploying significant server
+            infrastructure.
+          </p>
+        </div>
+      </div>
+
+      <!-- Subheadline -->
+      <p class="article-subheadline">
+        An <strong style="color: var(--blue-accent)">open&#8209;source</strong>,
+        <strong style="color: var(--teal)">agentic&#8209;first</strong> GPU&#8209;accelerated 4D
+        globe engine purpose&#8209;built for massive geospatial time series visualization. Globe
+        Trotter introduces a highly optimized binary file format named
+        <strong style="color: var(--blue-accent)">Flex</strong> supporting
+        <strong>unlimited epochs</strong> of animation data — direct to GPU, zero parsing,
+        60&nbsp;FPS in the browser. No servers. No tile infrastructure. The demo below shows what
+        that looks like at real scale.
+      </p>
+
+      <!-- ===== DEMO SCREENSHOT SECTION ===== -->
+      <section class="demo-section" id="demo">
+        <img
+          class="demo-video"
+          src="../docs/globe-trotter-hero.png"
+          alt="Globe Trotter — 1.47M H3 hexagons, 83K animated flight tracks, GPU charts"
+        />
+        <div class="demo-caption">
+          <span class="demo-caption-label">Globe Trotter in Action</span>
+          <span class="demo-caption-sub">
+            1.47M H3 hexagons · 83K animated flight tracks · GPU-rendered charts — all in a single
+            browser tab at 60 FPS.
+          </span>
+        </div>
+      </section>
+
+      <!-- ===== Big Data Stat Bar ===== -->
+      <!-- Numbers reflect the included demo dataset — Flex formats place no ceiling on epochs or features -->
+      <p
+        style="
+          text-align: center;
+          font-size: 0.7rem;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          color: #465967;
+          margin-bottom: 0;
+          padding-top: 0.1rem;
+        "
+      >
+        Included demo dataset — Flex formats support unlimited epochs &amp; features
+      </p>
+      <div class="stat-bar">
+        <div class="stat-item">
+          <span class="stat-number">1.47M</span>
+          <span class="stat-label">H3 hexagons</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-number">1,440</span>
+          <span class="stat-label">time epochs</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-number">2.1B</span>
+          <span class="stat-label">data points</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-number">83K</span>
+          <span class="stat-label">animated tracks</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-number">60</span>
+          <span class="stat-label">FPS in browser</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-number">51×</span>
+          <span class="stat-label">vs GeoJSON size</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-number">&lt;1ms</span>
+          <span class="stat-label">epoch transition</span>
+        </div>
+      </div>
+
+      <!-- ===== Article Body ===== -->
+      <div class="article-body">
+        <p>
+          The hardest problem in geospatial
+          visualization isn't rendering a map. It's animating a map through <em>time</em> —
+          where every pixel, every hexagon, every track has a value that changes across hundreds or
+          thousands of moments. The moment you add a temporal dimension to big geospatial data,
+          every existing framework either collapses under the data volume, forces painful
+          server-side infrastructure, or sacrifices interactivity for scale. Today we're
+          open-sourcing <strong>Globe Trotter</strong> — a GPU-accelerated 4D globe engine and
+          binary format architecture built from the ground up to make time a first-class dimension,
+          at any scale, without servers.
+          <a href="#use-cases">See who it's built for&nbsp;&rarr;</a>
+        </p>
+
+        <!-- ===== Flex Format Architecture ===== -->
+        <h2 id="flex-formats">The Flex Format Architecture: GPU Zero-Copy Time Series</h2>
+
+        <p>
+          The reason Globe Trotter handles this scale at interactive frame rates is not clever
+          rendering tricks — it's the <strong>Flex binary format architecture</strong>. Flex formats
+          are the foundational data layer of the entire engine, and the foundation of a broader big
+          data engineering platform. They are not compression wrappers around GeoJSON, nor are they
+          tilesets generated by a tile server. They are <strong>GPU memory layouts</strong> —
+          designed so that every byte of the file corresponds directly to a value that will be read
+          by a GPU shader, with no intermediate parsing, transformation, or CPU-side data
+          manipulation required.
+        </p>
+
+        <div class="callout callout--teal">
+          <p>
+            <strong>Coming soon:</strong> Globe Trotter's visualization engine is the first
+            component of a broader open-source <strong>Flex data engineering ecosystem</strong> —
+            including a Rust SQL engine, a Python analytics SDK, and a streaming ingest pipeline —
+            all built natively on the Flex formats. Watch this space.
+          </p>
+        </div>
+
+        <h3>What GPU Zero-Copy Means</h3>
+
+        <p>
+          Traditional geospatial formats — GeoJSON, Shapefiles, GeoPackage, even Parquet — are
+          designed for interchange and analysis, not for GPU upload. Loading them into a WebGL or
+          WebGPU pipeline requires a CPU-side parsing stage that extracts coordinates, builds index
+          buffers, flattens nested structures, and marshals values into typed arrays before they can
+          be uploaded to the GPU. For small datasets this is fine. For 1.47 million features across
+          1,440 time epochs, it's the bottleneck that makes interactive visualization impossible.
+        </p>
+
+        <p>Flex formats eliminate this stage entirely. The pipeline is:</p>
+
+        <div class="pipeline-flow">
+          <div class="pipeline-stage">
+            <div class="pipeline-stage-icon">🗄️</div>
+            <div class="pipeline-stage-label">Source Data</div>
+            <div class="pipeline-stage-sub">CSV / Parquet<br />BigQuery / PostGIS</div>
+          </div>
+          <div class="pipeline-arrow">→</div>
+          <div class="pipeline-stage pipeline-stage--highlight">
+            <div class="pipeline-stage-icon">⚙️</div>
+            <div class="pipeline-stage-label">Flex Encoder</div>
+            <div class="pipeline-stage-sub">data-sdk<br />batch or streaming</div>
+          </div>
+          <div class="pipeline-arrow">→</div>
+          <div class="pipeline-stage pipeline-stage--highlight">
+            <div class="pipeline-stage-icon">📦</div>
+            <div class="pipeline-stage-label">Flex File</div>
+            <div class="pipeline-stage-sub">.h3f / .gfb / .mfb<br />static hosting</div>
+          </div>
+          <div class="pipeline-arrow">→</div>
+          <div class="pipeline-stage">
+            <div class="pipeline-stage-icon">🌐</div>
+            <div class="pipeline-stage-label">fetch()</div>
+            <div class="pipeline-stage-sub">ArrayBuffer<br />no parse</div>
+          </div>
+          <div class="pipeline-arrow">→</div>
+          <div class="pipeline-stage pipeline-stage--highlight">
+            <div class="pipeline-stage-icon">🖥️</div>
+            <div class="pipeline-stage-label">GPUBuffer</div>
+            <div class="pipeline-stage-sub">device.createBuffer<br />writeBuffer()</div>
+          </div>
+          <div class="pipeline-arrow">→</div>
+          <div class="pipeline-stage">
+            <div class="pipeline-stage-icon">🎮</div>
+            <div class="pipeline-stage-label">Shader</div>
+            <div class="pipeline-stage-sub">reads directly<br />60 FPS</div>
+          </div>
+        </div>
+        <div class="pipeline-zero-copy-label">
+          ↑ network → ArrayBuffer → GPUBuffer — no CPU parsing, no intermediate transforms ↑
+        </div>
+
+        <p>
+          The Flex encoder runs when you generate your dataset — either as a one-time offline batch
+          job or a continuously running pipeline for datasets that update in real time. The resulting
+          binary file is then served from any
+          static host — a GCS bucket, S3, Azure Blob Storage, a CDN — and loaded directly into GPU
+          memory by the engine. There is no server-side rendering, no tile generation at query time,
+          and no CPU-side data processing in the browser. The CPU's only job is to call
+          <code>writeBuffer()</code>.
+        </p>
+
+        <p>
+          This architecture also eliminates the traditional user-scaling bottleneck. Conventional
+          geospatial platforms centralise work on the server: every concurrent user triggers a
+          tile-render job, a database query, or a processing pipeline. That model caps out quickly —
+          more users means more backend load, more infrastructure, and higher cost per viewer. By
+          moving all computation to the encode step and serving static binary files from a CDN,
+          Globe Trotter decouples viewer count from server load entirely. A visualisation that
+          handles one user handles one million — the CDN absorbs the traffic and each viewer's GPU
+          does the rendering independently. There is no query server to overload, no tile cache to
+          warm, and no per-user cost to amortise.
+        </p>
+
+        <div class="callout callout--green">
+          <p>
+            <strong>The compression result:</strong> The mobile demand simulation dataset (1.47M
+            hexagons × 1,440 epochs × 3 metrics) would be <strong>87 GB as gzipped GeoJSON</strong>.
+            In H3Flex format with sparse encoding and gzip compression it is
+            <strong>1.7 GB</strong> — a <strong>51× reduction</strong> — and it requires zero CPU
+            parsing to use.
+          </p>
+        </div>
+
+        <h3>Three Formats — One Architecture</h3>
+
+        <p>
+          Globe Trotter ships three Flex formats, each purpose-built for a different shape of
+          geospatial time series data:
+        </p>
+
+        <div class="flex-format-grid">
+          <!-- H3Flex -->
+          <div class="flex-card flex-card--h3f">
+            <div class="flex-card-header">
+              <div class="flex-card-ext">.h3f</div>
+              <div class="flex-card-title">
+                H3Flex
+                <small>Hexagonal time series grids</small>
+              </div>
+            </div>
+            <div class="flex-card-body">
+              <p>
+                Pre-computed H3 hexagonal mesh with a temporal attribute tensor. Each hexagon stores
+                a value per epoch per metric. The time dimension is stored in
+                <strong>epoch-major order</strong> — a contiguous block of all hex values for epoch
+                T, then T+1, enabling a WebGPU compute scatter to transition epochs in
+                <strong>under 1ms</strong> regardless of grid size.
+              </p>
+              <p>
+                Data is <strong>sharded by metric</strong>: only the active metric's shard is in
+                memory. Sparse and RLE encoding are auto-selected per shard. Each file is
+                gzip-compressed.
+              </p>
+              <span class="flex-stat">1.47M hexagons</span>
+              <span class="flex-stat">1,440 epochs</span>
+              <span class="flex-stat">sparse / RLE</span>
+              <span class="flex-stat">&lt;200ms GPU upload</span>
+            </div>
+          </div>
+
+          <!-- GeoFlex -->
+          <div class="flex-card flex-card--gfb">
+            <div class="flex-card-header">
+              <div class="flex-card-ext">.gfb</div>
+              <div class="flex-card-title">
+                GeoFlex
+                <small>Moving geometry &amp; vector features</small>
+              </div>
+            </div>
+            <div class="flex-card-body">
+              <p>
+                Points, lines, and polygons with <strong>epoch-major position arrays</strong>. Each
+                entity stores all of its positions across all time steps as a flat Float32 buffer.
+                The vertex shader reads two consecutive epoch positions and uses
+                <code>mix()</code> to interpolate — smooth sub-epoch animation at zero CPU cost.
+              </p>
+              <p>
+                Categorical attributes (airline, category, type) are
+                <strong>dictionary-encoded</strong> and uploaded as a lookup texture — GPU
+                categorical color mapping with no per-vertex branching.
+              </p>
+              <span class="flex-stat">83K tracks</span>
+              <span class="flex-stat">1,440 epochs</span>
+              <span class="flex-stat">GPU interpolation</span>
+              <span class="flex-stat">60 FPS</span>
+            </div>
+          </div>
+
+          <!-- MetricFlex -->
+          <div class="flex-card flex-card--mfb">
+            <div class="flex-card-header">
+              <div class="flex-card-ext">.mfb</div>
+              <div class="flex-card-title">
+                MetricFlex
+                <small>Columnar entity metrics</small>
+              </div>
+            </div>
+            <div class="flex-card-body">
+              <p>
+                Geometry-free columnar metric data for entity-level time series. Tracks a value per
+                entity per epoch — e.g. per-airline demand across 1,440 minutes. Stored as a
+                columnar Float32 tensor with <strong>dictionary-encoded string keys</strong>.
+              </p>
+              <p>
+                Powers the GPU chart system directly: histograms, time-series, and bar charts read
+                from MetricFlex buffers already resident in GPU memory —
+                <strong>no separate data fetch</strong> required.
+              </p>
+              <span class="flex-stat">columnar layout</span>
+              <span class="flex-stat">GPU charts</span>
+              <span class="flex-stat">dict encoding</span>
+              <span class="flex-stat">no geometry</span>
+            </div>
+          </div>
+        </div>
+
+        <h3>Generating Flex Data — The Data SDK</h3>
+
+        <p>
+          Globe Trotter ships a <strong>Node.js data SDK</strong> with encoders for all three
+          formats. Any source that can produce a row-oriented dataset — CSV, Parquet, BigQuery,
+          PostGIS, a REST API — can be encoded into Flex format with a short script. The included
+          mobile demand simulation generates a complete, realistic H3Flex + GeoFlex + MetricFlex
+          dataset entirely from synthetic data, with no external dependencies:
+        </p>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-dot code-dot--r"></span>
+            <span class="code-dot code-dot--y"></span>
+            <span class="code-dot code-dot--g"></span>
+            <span class="code-block-label">generate-h3f.js (data SDK example)</span>
+          </div>
+          <pre><span class="ck">import</span> { H3FlexEncoder } <span class="ck">from</span> <span class="cs">'@globe-trotter/data-sdk'</span><span class="cv">;</span>
+
+<span class="ck">const</span> encoder = <span class="ck">new</span> H3FlexEncoder({
+  resolution: <span class="cn">5</span>,          <span class="cc">// H3 resolution (res-5 ≈ 252 km² cells)</span>
+  epochs:     <span class="cn">1440</span>,       <span class="cc">// 24h at 1-minute resolution</span>
+  metrics:    [<span class="cs">'demand_mbps'</span>, <span class="cs">'supply_mbps'</span>, <span class="cs">'utilization'</span>],
+  encoding:   <span class="cs">'auto'</span>,     <span class="cc">// sparse or RLE, chosen per shard</span>
+});
+
+<span class="ck">for</span> (<span class="ck">const</span> row <span class="ck">of</span> rows) {
+  encoder.add(row.h3index, row.epoch, row.metric, row.value);
+}
+
+<span class="ck">await</span> encoder.write(<span class="cs">'./public/data/demand.manifest.json'</span>);
+<span class="cc">// → demand.manifest.json + demand.shard.{metric}.h3f per metric</span></pre>
+        </div>
+
+        <p>
+          The encoder automatically selects sparse vs RLE encoding per shard based on value density,
+          applies gzip compression, writes a manifest JSON that the engine uses for on-demand shard
+          loading, and pre-computes the H3 mesh geometry so the engine never re-triangulates at
+          runtime. For a 1.47M hexagon × 1,440-epoch × 3-metric dataset, the full encode runs in
+          under two minutes on a laptop.
+        </p>
+
+        <div class="callout callout--teal">
+          <p>
+            <strong><em style="color: var(--teal)">Coming soon:</em></strong> we will be
+            open-sourcing <strong>PyFlex</strong> — a Python analytics SDK built on Rust (PyO3) with
+            a Polars DataFrame interface, delivering a <strong>20–40× performance gain</strong> over
+            Pandas for Flex-scale temporal datasets.
+          </p>
+        </div>
+
+        <h3>Plugging Flex Into Your Visualization</h3>
+
+        <p>
+          Once your data is encoded, wiring it into a globe visualization requires only a YAML
+          config update — no code:
+        </p>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-dot code-dot--r"></span>
+            <span class="code-dot code-dot--y"></span>
+            <span class="code-dot code-dot--g"></span>
+            <span class="code-block-label">globe-config.yaml</span>
+          </div>
+          <pre><span class="ck">basemap:</span>
+  <span class="ck">style:</span> <span class="cs">satellite</span>
+  <span class="ck">token:</span> <span class="cs">env:VITE_MAPBOX_TOKEN</span>
+
+<span class="ck">camera:</span>
+  <span class="ck">center:</span> <span class="cv">[39.0, -98.0]</span>
+  <span class="ck">altitude:</span> <span class="cn">12000</span>
+
+<span class="ck">time:</span>
+  <span class="ck">enabled:</span> <span class="cn">true</span>
+  <span class="ck">speed:</span> <span class="cn">60</span>      <span class="cc"># 1 real second = 60 simulated minutes</span>
+  <span class="ck">loop:</span>  <span class="cn">true</span>
+
+<span class="ck">layers:</span>
+  - <span class="ck">name:</span> <span class="cs">Mobile Demand</span>
+    <span class="ck">type:</span> <span class="cs">h3f-sharded</span>
+    <span class="ck">url:</span>  <span class="cs">/data/demand.manifest.json</span>
+    <span class="ck">metric:</span> <span class="cs">demand_mbps</span>
+    <span class="ck">style:</span>
+      <span class="ck">type:</span>      <span class="cs">ramp</span>
+      <span class="ck">domain:</span>    <span class="cv">[0, 500]</span>
+      <span class="ck">stops:</span>     <span class="cv">["#0D1A80", "#1ABF59", "#F23319"]</span>
+
+  - <span class="ck">name:</span> <span class="cs">Flight Tracks</span>
+    <span class="ck">type:</span> <span class="cs">gfb</span>
+    <span class="ck">url:</span>  <span class="cs">/data/flights.gfb</span>
+    <span class="ck">style:</span>
+      <span class="ck">type:</span>      <span class="cs">categorical</span>
+      <span class="ck">attribute:</span> <span class="cs">airline</span></pre>
+        </div>
+
+        <!-- ===== Why the Scale Matters ===== -->
+        <h2>Why Scale Is the Differentiator</h2>
+
+        <p>
+          Most geospatial frameworks hit a hard wall around 10,000–50,000 GeoJSON features before
+          frame rates drop below interactive thresholds. The community has developed workarounds —
+          server-side tile generation, data aggregation on the fly, pre-rendered video — but each
+          workaround reintroduces infrastructure complexity and sacrifices the key property that
+          makes a visualization useful: <strong>the ability to interactively explore time</strong>.
+        </p>
+
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>Approach</th>
+              <th>Temporal Interactivity</th>
+              <th>Scale Ceiling</th>
+              <th>Infrastructure</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>GeoJSON + Mapbox GL / Leaflet</td>
+              <td class="pain">Limited / custom code</td>
+              <td class="pain">~10K features</td>
+              <td>Static hosting</td>
+            </tr>
+            <tr>
+              <td>deck.gl + tile server</td>
+              <td class="pain">Custom per-layer</td>
+              <td>Millions (tiled)</td>
+              <td class="pain">Tile server + DB</td>
+            </tr>
+            <tr>
+              <td>CesiumJS + CZML</td>
+              <td>Good for tracks</td>
+              <td class="pain">~100K entities</td>
+              <td>Static or server</td>
+            </tr>
+            <tr>
+              <td>Kepler.gl</td>
+              <td>Good</td>
+              <td class="pain">Memory-limited</td>
+              <td>Static hosting</td>
+            </tr>
+            <tr>
+              <td><strong>Globe Trotter + Flex</strong></td>
+              <td class="solved">Full scrub/play/loop — built in</td>
+              <td class="solved">1.5M+ features × 1,440 epochs</td>
+              <td class="solved">Static file hosting only</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- ===== 3-Step Workflow ===== -->
+        <h2>Generate, Configure, Share</h2>
+
+        <p>
+          Globe Trotter collapses the entire workflow — from raw data to a shareable interactive
+          globe — into three steps:
+        </p>
+
+        <div class="workflow-steps">
+          <div class="wf-step">
+            <div class="wf-step-num">1</div>
+            <h4>Generate Flex Data</h4>
+            <p>
+              Convert any source — CSV, Parquet, BigQuery, PostGIS, simulation output — into H3Flex,
+              GeoFlex, or MetricFlex using the data SDK. Run it as a one-time batch job or
+              continuously for real-time datasets.
+            </p>
+          </div>
+          <div class="wf-step">
+            <div class="wf-step-num">2</div>
+            <h4>Write a YAML Config</h4>
+            <p>
+              Define layers, styles, camera, time settings, and basemap in a single
+              <code>globe-config.yaml</code>. No JavaScript required.
+            </p>
+          </div>
+          <div class="wf-step">
+            <div class="wf-step-num">3</div>
+            <h4>Share a URL</h4>
+            <p>
+              Upload data + config to any static host. Send the URL. Your audience sees a live 4D
+              globe — no install, no login.
+            </p>
+          </div>
+        </div>
+
+        <!-- ===== Embed API ===== -->
+        <h2>Embed in Any Application</h2>
+
+        <p>
+          Globe Trotter ships as a framework-agnostic JavaScript library. The dist build is a single
+          ES module — no dependencies, no peer packages — that drops into React, Vue, Angular,
+          Svelte, or a plain HTML page without modification. The entire engine, rendering pipeline,
+          and UI are contained in one import.
+        </p>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-dot code-dot--r"></span>
+            <span class="code-dot code-dot--y"></span>
+            <span class="code-dot code-dot--g"></span>
+            <span class="code-block-label">Install</span>
+          </div>
+          <pre><span class="cc"># npm / yarn / pnpm</span>
+npm install @globe-trotter/core</pre>
+        </div>
+
+        <p>
+          Initialising the engine takes three lines: create a canvas, instantiate the engine, load
+          your config. Everything else — basemap, camera, time controls, layer rendering — is driven
+          by the YAML config or the programmatic API.
+        </p>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-dot code-dot--r"></span>
+            <span class="code-dot code-dot--y"></span>
+            <span class="code-dot code-dot--g"></span>
+            <span class="code-block-label">Embed — minimal integration</span>
+          </div>
+          <pre><span class="ck">import</span> { GlobeTrotterEngine } <span class="ck">from</span> <span class="cs">'@globe-trotter/core'</span>;
+
+<span class="cc">// Any &lt;canvas&gt; in your application — size it however you like.</span>
+<span class="ck">const</span> canvas = document.querySelector(<span class="cs">'#globe'</span>);
+
+<span class="ck">const</span> engine = <span class="ck">new</span> GlobeTrotterEngine(canvas, {
+  mapboxToken: <span class="cs">import.meta.env.VITE_MAPBOX_TOKEN</span>,
+  basemap:     <span class="cs">'satellite'</span>,
+  autoStart:   <span class="cn">true</span>,
+});
+
+<span class="cc">// Load layers, camera, and time from a YAML config …</span>
+<span class="ck">await</span> engine.loadConfig(<span class="cs">'/globe-config.yaml'</span>);
+
+<span class="cc">// … or drive it programmatically from your application state.</span>
+engine.setTime(epochSeconds);
+engine.setMetric(<span class="cs">'demand_mbps'</span>);</pre>
+        </div>
+
+        <p>
+          Because the engine is just a class that wraps a <code>&lt;canvas&gt;</code>, it integrates
+          into component lifecycles naturally. In React, instantiate it in a
+          <code>useEffect</code> and call <code>engine.dispose()</code> on unmount. In Vue or
+          Angular, the pattern is identical. There is no virtual DOM involvement, no special
+          renderer, and no opinion about how your application manages state — the globe is a GPU
+          surface that responds to the method calls you make.
+        </p>
+
+        <!-- ===== GPU Engine Highlights ===== -->
+        <h2>GPU Engine — Built to Feed the Flex Pipeline</h2>
+
+        <p>
+          The Flex architecture dictates the engine design. Because data arrives GPU-ready, the
+          engine can focus entirely on rendering rather than data management:
+        </p>
+
+        <h3>Pure WebGPU, Zero Dependencies</h3>
+        <p>
+          Globe Trotter has <strong>no runtime dependencies</strong> — no Three.js, no Babylon.js,
+          no Mapbox GL renderer under the hood. Every GPU buffer, shader, and matrix multiply is
+          written from scratch. The globe, tiles, H3 layers, GFB tracks, and chart overlays all
+          render via <strong>WebGPU</strong> with WGSL compute shaders and instanced draws. WebGPU
+          is required; browsers without support receive a clear <code>WebGPURequiredError</code>.
+        </p>
+
+        <h3>Compute-First Rendering — Serving the Time Dimension</h3>
+        <p>
+          Every frame, the WebGPU pipeline runs compute before render. A
+          <strong>scatter compute shader</strong> reads the epoch index uniform and writes the
+          current epoch's hex values from a storage buffer into an R32F texture in
+          <strong>under 1ms</strong> — replacing what would be a 130ms CPU strip-upload loop in
+          WebGL2. The render pass then reads the texture directly. Epoch transitions are
+          imperceptible. A <strong>histogram compute shader</strong> bins 1.4M values via
+          <code>atomicAdd</code>
+          in &lt;0.1ms, driving live GPU charts without blocking the main thread.
+        </p>
+
+        <h3>GPU Performance at Flex Scale</h3>
+        <ul style="margin-bottom: 1.25rem; padding-left: 1.5rem">
+          <li style="margin-bottom: 0.5rem; line-height: 1.7">
+            <strong>150× fewer tile draw calls</strong> — all visible satellite tiles render in a
+            single <code>drawIndexedInstanced()</code> call via a 256-layer texture 2D array.
+          </li>
+          <li style="margin-bottom: 0.5rem; line-height: 1.7">
+            <strong>&gt;100× faster epoch transitions</strong> — WebGPU compute scatter vs WebGL2
+            amortized strip upload (sub-1ms vs ~130ms).
+          </li>
+          <li style="margin-bottom: 0.5rem; line-height: 1.7">
+            <strong>~40× faster histogram computation</strong> — GPU <code>atomicAdd</code> bins
+            1.4M cells in &lt;0.1ms vs ~4ms blocking CPU loop.
+          </li>
+          <li style="margin-bottom: 0.5rem; line-height: 1.7">
+            <strong>Zero per-frame GC pressure</strong> — pre-allocated scratch buffers for all
+            uniform writes eliminate ~500 KB/s of garbage collection overhead.
+          </li>
+        </ul>
+
+        <h3>GPU-Accelerated Chart System — Wired to Flex Data</h3>
+        <p>
+          Globe Trotter includes a full GPU-rendered chart system on a transparent WebGPU overlay
+          canvas — no DOM elements, no Canvas2D, no external library. Six chart types are supported:
+          <strong>histograms</strong>, <strong>heatmaps</strong>, <strong>CDFs</strong>,
+          <strong>boxplots</strong>, <strong>bar charts</strong>, and <strong>time-series</strong>.
+          Because chart data is read directly from MetricFlex buffers already in GPU memory, there
+          is no separate data fetch for charts — they update in sync with the time scrubber
+          automatically.
+        </p>
+
+        <!-- ===== Agentic AI ===== -->
+        <h2>Agentic-First by Design</h2>
+
+        <p>
+          "Agentic-first" is not a feature added on top of Globe Trotter — it is the architectural
+          philosophy that shaped every decision from day one. The entire codebase was
+          <strong
+            >vibe coded with
+            <a href="https://developers.google.com/antigravity">Google Antigravity</a></strong
+          >, Google's advanced agentic coding platform. Every line — the GPU engine, Flex format
+          encoders, compute shaders, chart renderers, symbology dialogs, and all documentation — is
+          AI-authored, Subject Matter Expert reviewed and verified. More importantly, Globe Trotter
+          is <em>designed to be operated</em> by AI agents: from receiving a raw dataset and a
+          natural-language description of what to visualise, through to encoding the data, writing
+          the YAML config, and publishing a live interactive globe — with no human intervention
+          required at any step.
+        </p>
+
+        <div class="callout callout--teal">
+          <p>
+            <strong>The paradigm shift:</strong> Instead of an engineer spending days wrangling
+            GeoJSON, configuring a tile server, and hand-writing visualisation code, an AI agent can
+            ingest any standard geospatial format, generate production-quality Flex data, and
+            publish a live 4D globe — in minutes, from a single natural language request.
+          </p>
+        </div>
+
+        <h3>Embedded Agent Skills</h3>
+
+        <p>
+          Globe Trotter ships with <strong>10 embedded workspace agent skills</strong>, each one an
+          invocable slash command. An AI agent working inside Globe Trotter loads complete expert
+          knowledge for any subsystem on demand — without reading source code or documentation
+          manually.
+        </p>
+
+        <div class="workflow-steps" style="grid-template-columns: 1fr 1fr">
+          <div class="wf-step">
+            <div class="wf-step-num">1</div>
+            <h4>/globe-trotter-architecture</h4>
+            <p>
+              WebGPU render pipeline, compute shaders, instanced tile rendering, camera, time, filter
+              engine, and WGSL shader conventions. Use when adding new renderer types or debugging
+              frame rate issues.
+            </p>
+          </div>
+          <div class="wf-step">
+            <div class="wf-step-num">2</div>
+            <h4>/globe-trotter-yaml-config</h4>
+            <p>
+              Complete <code>globe-config.yaml</code> reference — all layer types, style specs,
+              camera, time, extrusion, basemap, charts, interaction popups, and UI widgets. Use when
+              configuring any layer or dataset.
+            </p>
+          </div>
+          <div class="wf-step">
+            <div class="wf-step-num">3</div>
+            <h4>/globe-trotter-styling</h4>
+            <p>
+              StyleEngine API — color ramps, categorical LUTs, opacity stops, compile/dispose
+              lifecycle, GPU texture management, and the symbology dialog. Use when implementing
+              custom color scales.
+            </p>
+          </div>
+          <div class="wf-step">
+            <div class="wf-step-num">4</div>
+            <h4>/globe-trotter-charting</h4>
+            <p>
+              GPU-accelerated chart system — heatmap, histogram, CDF, boxplot, barplot, and
+              time-series chart types, shader architecture, and overlay system. Use when adding or
+              modifying chart rendering.
+            </p>
+          </div>
+          <div class="wf-step">
+            <div class="wf-step-num">5</div>
+            <h4>/globe-trotter-data-pipeline</h4>
+            <p>
+              Data pipeline patterns for converting raw geospatial data into H3F, GFB, and MFB
+              formats using the <code>@globe-trotter/data-sdk</code> encoders. Use when onboarding
+              a new dataset.
+            </p>
+          </div>
+          <div class="wf-step">
+            <div class="wf-step-num">6</div>
+            <h4>/globe-trotter-bigquery-to-globe</h4>
+            <p>
+              End-to-end workflow: BigQuery SQL → H3Flex or GeoFlex → live globe layer. Use when
+              visualising a BigQuery dataset on the globe from scratch.
+            </p>
+          </div>
+          <div class="wf-step">
+            <div class="wf-step-num">7</div>
+            <h4>/globe-trotter-custom-layers</h4>
+            <p>
+              Guide for creating custom renderer and layer types — WebGPU renderer contract, WGSL
+              shaders, temporal interpolation, filter integration, and LayerManager registration.
+            </p>
+          </div>
+          <div class="wf-step">
+            <div class="wf-step-num">8</div>
+            <h4>/globe-trotter-deploy</h4>
+            <p>
+              Deployment patterns — static hosting, GKE, CDN, shard serving, Mapbox token
+              management, and library builds. Use when deploying to production or configuring CDN
+              caching.
+            </p>
+          </div>
+          <div class="wf-step">
+            <div class="wf-step-num">9</div>
+            <h4>/globe-trotter-performance</h4>
+            <p>
+              WebGPU profiling, GPU compute optimisations, memory budgeting, and scaling limits.
+              Use when investigating low FPS or scaling to larger datasets.
+            </p>
+          </div>
+          <div class="wf-step">
+            <div class="wf-step-num">10</div>
+            <h4>/h3f-virtual-layers</h4>
+            <p>
+              Query-driven live H3 aggregation — mesh tile architecture, VirtualH3Loader pipeline,
+              and YAML configuration. Use when adding virtual H3 layers that aggregate live data
+              on demand.
+            </p>
+          </div>
+        </div>
+
+        <h4 style="margin-top: 2rem">Data Automation</h4>
+        <p>
+          Beyond development skills, Globe Trotter ships one end-to-end data automation pipeline
+          that drives the full workflow from raw data to a live published globe:
+        </p>
+
+        <div class="workflow-steps" style="grid-template-columns: 1fr">
+          <div class="wf-step">
+            <div class="wf-step-num">1</div>
+            <h4>/flex-create-dataset</h4>
+            <p>
+              Inspect source data, generate the correct Flex binary format, apply smart symbology,
+              and write the <code>globe-config.yaml</code> layer entry — end to end from a single
+              natural language description of the data.
+            </p>
+          </div>
+        </div>
+
+        <h3>Extend Globe Trotter Into Your Own Workflows</h3>
+
+        <p>
+          The skills and workflows architecture is an open extension point, not a closed system. Any
+          team that embeds Globe Trotter into a larger platform can add domain-specific skills and
+          workflows to the <code>.agents/</code> directory — giving their own AI agents expert-level
+          knowledge of their specific datasets, naming conventions, deployment targets, and
+          organisational patterns. An agent working inside a telecommunications platform can load a
+          skill that knows that platform's H3 resolution choices, regional naming schema — and
+          invoke a workflow that re-encodes the latest epoch and pushes it to the CDN — without a
+          human in the loop. Globe Trotter's agentic architecture scales from a single developer
+          running a demo to a production platform where AI agents maintain a live global
+          visualisation system end to end.
+        </p>
+
+        <!-- ===== Customer × Use-Case Matrix ===== -->
+        <section id="use-cases" style="margin-top: 3rem">
+          <h2 id="community">Who Globe Trotter Is Built For</h2>
+          <p>
+            Globe Trotter addresses one underlying problem across many industries: large datasets
+            where every measurement has a location and a timestamp, and the insight lies in watching
+            the spatial picture change over time. The following matrix maps the roles and use cases
+            where it delivers direct value.
+          </p>
+
+          <h3>Telecommunications &amp; Network Engineering</h3>
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>Role</th>
+                <th>Use Case</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Network Planning Engineer</td>
+                <td>
+                  Visualise coverage, capacity, and demand across terrestrial radio networks
+                  (4G/5G/LEO) at global scale across time epochs
+                </td>
+              </tr>
+              <tr>
+                <td>RF / Spectrum Analyst</td>
+                <td>
+                  Animate interference patterns, signal propagation, and spectrum utilisation across
+                  a full operational day
+                </td>
+              </tr>
+              <tr>
+                <td>NOC / Operations Analyst</td>
+                <td>
+                  Live operational dashboard showing link states, faults, and traffic volumes across
+                  a global WAN
+                </td>
+              </tr>
+              <tr>
+                <td>Capacity Planner</td>
+                <td>
+                  Model supply-vs-demand gaps across regions at per-minute resolution, identify
+                  under-served areas over time
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>IoT &amp; Sensor Networks</h3>
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>Role</th>
+                <th>Use Case</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>IoT Platform Engineer</td>
+                <td>
+                  Real-time and historic visualisation of millions of device telemetry readings,
+                  spatially aggregated and animated across time
+                </td>
+              </tr>
+              <tr>
+                <td>Industrial Asset Manager</td>
+                <td>
+                  Track fleet, equipment, or infrastructure health across a global footprint —
+                  surface anomalies by time and location
+                </td>
+              </tr>
+              <tr>
+                <td>Smart City Analyst</td>
+                <td>
+                  Model sensor data (air quality, traffic, energy, water) across a city at
+                  per-minute resolution, replay events as animated H3 heatmaps
+                </td>
+              </tr>
+              <tr>
+                <td>Supply Chain Analyst</td>
+                <td>
+                  Animate logistics flows, shipment positions, and delivery density across time to
+                  identify bottlenecks and demand spikes
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>Remote Sensing &amp; Earth Observation</h3>
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>Role</th>
+                <th>Use Case</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Satellite Data Scientist</td>
+                <td>
+                  Visualise raster-derived H3 outputs (NDVI, SAR coherence, SST, soil moisture)
+                  across temporal stacks without tile server infrastructure
+                </td>
+              </tr>
+              <tr>
+                <td>Climate / Environmental Scientist</td>
+                <td>
+                  Animate decadal or multi-year geophysical datasets (sea level, ice extent,
+                  wildfire risk) at global scale with a shareable URL
+                </td>
+              </tr>
+              <tr>
+                <td>Disaster Risk Analyst</td>
+                <td>
+                  Overlay multi-sensor event timelines — flood extent, fire perimeter, storm track —
+                  with underlying infrastructure and population data
+                </td>
+              </tr>
+              <tr>
+                <td>EO Product Manager</td>
+                <td>
+                  Deliver client-facing interactive analytic outputs without provisioning tile or
+                  rendering servers
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>Defence &amp; Intelligence</h3>
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>Role</th>
+                <th>Use Case</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>ISR Analyst</td>
+                <td>
+                  Temporal overlay of surveillance coverage, sensor dwell time, and event density
+                  across a geographic theatre
+                </td>
+              </tr>
+              <tr>
+                <td>Mission Planning Analyst</td>
+                <td>
+                  Animate asset movements, coverage windows, and gap analysis across a planning
+                  timeline
+                </td>
+              </tr>
+              <tr>
+                <td>Logistics / Readiness Officer</td>
+                <td>
+                  Track global asset posture, supply routes, and readiness metrics across time —
+                  surface degradation early
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>Aviation, Logistics &amp; Mobility</h3>
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>Role</th>
+                <th>Use Case</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>ATM / Traffic Flow Manager</td>
+                <td>
+                  Animate flight track density, delay propagation, and sector loading across a full
+                  traffic day at continental scale
+                </td>
+              </tr>
+              <tr>
+                <td>Airline Network Planner</td>
+                <td>
+                  Visualise route utilisation, OD demand, and schedule performance across a global
+                  network over time
+                </td>
+              </tr>
+              <tr>
+                <td>Mobility Platform Analyst</td>
+                <td>
+                  Track ride-hail, micromobility, or autonomous vehicle fleet positions and trip
+                  density — replay demand patterns hour by hour
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>Research &amp; Academia</h3>
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>Role</th>
+                <th>Use Case</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Geospatial Data Scientist</td>
+                <td>
+                  Publish interactive spatio-temporal analyses as shareable URLs — no infrastructure
+                  budget, no license fees
+                </td>
+              </tr>
+              <tr>
+                <td>Epidemiologist / Public Health Researcher</td>
+                <td>
+                  Animate disease incidence, intervention coverage, or mobility proxy data across
+                  time and geography
+                </td>
+              </tr>
+              <tr>
+                <td>Urban Scientist</td>
+                <td>
+                  Model human activity patterns, land use change, or transport demand across cities
+                  across time at fine temporal resolution
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- ===== Tags ===== -->
+        <div class="tags">
+          <span class="tag">Open Source</span>
+          <span class="tag">4D Visualization</span>
+          <span class="tag">Time Series</span>
+          <span class="tag">Big Data</span>
+          <span class="tag">H3Flex</span>
+          <span class="tag">GeoFlex</span>
+          <span class="tag">MetricFlex</span>
+          <span class="tag">GPU Zero-Copy</span>
+          <span class="tag">WebGPU</span>
+          <span class="tag">Compute Shaders</span>
+          <span class="tag">Agentic AI</span>
+          <span class="tag">Vibe Coding</span>
+          <span class="tag">Google Antigravity</span>
+          <span class="tag">GPU Charts</span>
+          <span class="tag">Geospatial</span>
+          <span class="tag">GIS</span>
+          <span class="tag">Sensor Networks</span>
+          <span class="tag">IoT</span>
+          <span class="tag">YAML Config</span>
+        </div>
+      </div>
+      <!-- .article-body -->
+
+      <!-- ===== CTA Section ===== -->
+      <section class="cta-section" id="get-started">
+        <h2>Get Started with Globe Trotter</h2>
+        <p>
+          One command generates the full Flex dataset and opens a live 4D globe with 1.5M hexagons,
+          83K flights, and GPU&nbsp;charts.
+        </p>
+        <div class="code-block" style="margin-bottom: 1.5rem">
+          <div class="code-block-header">
+            <span class="code-dot code-dot--r"></span>
+            <span class="code-dot code-dot--y"></span>
+            <span class="code-dot code-dot--g"></span>
+            <span class="code-block-label">terminal</span>
+          </div>
+          <pre><span class="cs">git clone</span> https://github.com/flexmon/globe-trotter.git
+<span class="cs">cd</span> globe-trotter
+<span class="cs">npm run setup</span>   <span class="ck"># install deps → generate Flex data → start dev server → open browser</span></pre>
+        </div>
+        <div class="cta-buttons">
+          <a href="https://github.com/flexmon/globe-trotter" class="cta-btn cta-btn--primary">
+            <svg viewBox="0 0 16 16" fill="currentColor">
+              <path
+                d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"
+              />
+            </svg>
+            View on GitHub
+          </a>
+          <a href="docs/developers-guide-antigravity-vibe.md" class="cta-btn cta-btn--secondary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2L2 7l10 5 10-5-10-5z" />
+              <path d="M2 17l10 5 10-5" />
+              <path d="M2 12l10 5 10-5" />
+            </svg>
+            Antigravity Vibe Guide
+          </a>
+        </div>
+      </section>
+    </article>
+
+    <!-- ===== Footer ===== -->
+    <footer class="site-footer">
+      <p>
+        Globe Trotter is released under the
+        <a href="https://www.apache.org/licenses/LICENSE-2.0">Apache 2.0 License</a>. |
+        <a href="https://github.com/flexmon/globe-trotter">GitHub</a> |
+        <a href="https://github.com/flexmon/globe-trotter/issues">Issues</a> |
+        <a href="https://github.com/flexmon/globe-trotter/discussions">Discussions</a>
+      </p>
+    </footer>
+  </body>
+</html>

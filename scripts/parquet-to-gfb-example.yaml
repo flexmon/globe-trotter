@@ -1,0 +1,76 @@
+# parquet-to-gfb-example.yaml
+#
+# Concrete example configuration for converting Parquet files into GeoFlex (.gfb)
+# moving feature / vector track binary format for Globe Trotter.
+#
+# Usage:
+#   node scripts/parquet-to-flex.js scripts/parquet-to-gfb-example.yaml
+
+# ─── Source Parquet Files ───────────────────────────────────────────────────
+source:
+  # Local directory containing .parquet files (all matching files are read)
+  path: './data/aircraft_tracks_export/'
+  pattern: '*.parquet'
+
+  # Or a GCS prefix (downloads and processes automatically):
+  # path: "gs://my-bucket/exports/aircraft_tracks/"
+  # download_concurrency: 5
+
+# ─── GeoFlex Geometry Configuration ─────────────────────────────────────────
+geometry:
+  # Output format: "gfb" for vector features and moving point/track data
+  type: gfb
+
+  # Parquet columns holding geographic coordinates per feature/row
+  longitude_column: 'lon'
+  latitude_column: 'lat'
+
+  # Optional: altitude column (in feet or meters). Enables 3D altitude rendering.
+  altitude_column: 'alt_ft'
+
+  # GFB geometry type: point | line | polygon (default: point)
+  geometry_type: point
+
+  # Unique entity identifier column across epochs (e.g. aircraft_id, vessel_mmsi, device_id).
+  # Rows with the same entity ID are grouped into a continuous trajectory.
+  entity_column: 'aircraft_id'
+
+# ─── Time & Epoch Sharding ──────────────────────────────────────────────────
+# (Omit this section entirely for static point features without temporal animation)
+time:
+  # Column containing epoch index or timestamp per position sample
+  epoch_column: 'epoch'
+
+  # Seconds between consecutive epochs (used for time playback and interpolation)
+  epoch_interval: 60 # 1 minute
+
+# ─── Column Schema ──────────────────────────────────────────────────────────
+columns:
+  # Static columns: constant per entity across all epochs (stored in base .gfb.gz)
+  static:
+    - source: 'tail_number'
+      type: string
+
+    - source: 'aircraft_model'
+      output: 'model'
+      type: string
+
+  # Temporal columns: per-feature per-epoch metrics (stored in .shard files)
+  temporal:
+    - source: 'ground_speed_knots'
+      output: 'speed_knots'
+      type: float32
+
+    - source: 'traffic_mbps'
+      type: float32
+
+# ─── Output Directory & Manifest ────────────────────────────────────────────
+output:
+  path: './public/data/aircraft_tracks/'
+  base_name: 'aircraft_tracks'
+  epochs_per_shard: 60
+  gzip_level: 1
+  active_metric: 'speed_knots'
+
+manifest:
+  description: 'GeoFlex Aircraft Trajectories - 3D Moving Points'

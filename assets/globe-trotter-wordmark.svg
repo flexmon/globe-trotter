@@ -1,0 +1,53 @@
+<svg width="450" height="96" viewBox="0 0 450 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Globe Trotter Signature Color Gradient -->
+    <linearGradient id="gt_wm_grad" x1="0" y1="100" x2="450" y2="12" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#24343C"/>
+      <stop offset="15%" stop-color="#0077A3"/>
+      <stop offset="40%" stop-color="#009FE3"/>
+      <stop offset="65%" stop-color="#01B3B1"/>
+      <stop offset="85%" stop-color="#A7CC58"/>
+      <stop offset="100%" stop-color="#CED700"/>
+    </linearGradient>
+
+    <linearGradient id="gt_accent_grad" x1="0" y1="0" x2="145" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#009FE3"/>
+      <stop offset="50%" stop-color="#01B3B1"/>
+      <stop offset="100%" stop-color="#CED700"/>
+    </linearGradient>
+
+    <style>
+      .gt-title { font-family: 'Outfit', 'Inter', 'Segoe UI', system-ui, sans-serif; font-weight: 700; }
+    </style>
+  </defs>
+
+  <!-- 4D Globe Emblem Mark (Left side of wordmark) -->
+  <g transform="translate(14, 16)">
+    <!-- Globe Core Sphere & Meridians -->
+    <g fill="none" stroke="url(#gt_wm_grad)" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="40" cy="40" r="32" stroke-width="5.5" />
+      <ellipse cx="40" cy="40" rx="14" ry="32" stroke-width="4" opacity="0.9" />
+      <path d="M 40 8 V 72" stroke-width="4.5" opacity="0.95" />
+      <path d="M 12 28 C 18 33, 62 33, 68 28" stroke-width="3.5" opacity="0.8" />
+      <path d="M 8 40 H 72" stroke-width="4.5" opacity="0.95" />
+      <path d="M 12 52 C 18 47, 62 47, 68 52" stroke-width="3.5" opacity="0.8" />
+      <!-- 4D Orbital Ring -->
+      <path d="M 6 52 C 8 24, 52 4, 74 24 C 68 56, 24 76, 6 52 Z" stroke-width="5.5" fill="none" />
+    </g>
+    <!-- Data Nodes -->
+    <circle cx="40" cy="40" r="5" fill="url(#gt_wm_grad)" />
+    <circle cx="55" cy="24" r="4" fill="#01B3B1" />
+    <circle cx="25" cy="56" r="4" fill="#A7CC58" />
+    <circle cx="66" cy="40" r="3.5" fill="#CED700" />
+  </g>
+
+  <!-- Wordmark Text: "Globe Trotter" -->
+  <g transform="translate(115, 0)">
+    <!-- "Globe" text styled in high-tech gradient -->
+    <text x="0" y="68" class="gt-title" font-size="58" fill="url(#gt_accent_grad)">Globe</text>
+
+    <!-- "Trotter" text styled in corporate blue -->
+    <text x="145" y="68" class="gt-title" font-size="58" fill="#007EB5">Trotter</text>
+
+  </g>
+</svg>

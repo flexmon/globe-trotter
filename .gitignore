@@ -1,0 +1,71 @@
+# Dependencies
+node_modules/
+
+# Private data
+scripts/vs3/
+tmp_leo_inspect/
+open-source-todo/
+.github/
+
+# Build output — app build (Vite dev/prod bundles) is ignored,
+# but dist/globe-trotter/ library builds are committed for serving from git.
+# The lib's internal dist/ is also ignored (only the root dist/ matters).
+# NOTE: must use dist/* (not dist/) so negation rules can take effect.
+dist/*
+!dist/globe-trotter/
+lib/packages/core/dist/
+lib/packages/react/dist/
+lib/packages/vue/dist/
+
+# Generated data (large binary files — regenerate with scripts/)
+public/data/*
+!public/data/.gitkeep
+public/meshes/*
+!public/meshes/.gitkeep
+
+# Caches
+.jest-cache/
+
+# Lock files
+aube-lock.yaml
+bun.lock
+
+# OS files
+.DS_Store
+
+# Large media files (host externally, e.g. GitHub Releases)
+*.webm
+
+# Log files
+*.log
+
+# Local env overrides (personal tokens)
+.env
+.env.local
+.env.*.local
+
+# npm registry auth (written locally/in CI with a short-lived token; never commit)
+.npmrc
+
+# Rust build artifacts
+**/target/
+
+# Python
+.venv/
+__pycache__/
+*.so
+*.dylib
+*.dSYM/
+*.egg-info/
+dist/
+build/
+
+.opencode/
+**/test-data/
+**/tests/data/
+
+.playwright-mcp/
+.playwright-cli/
+.claude/settings.local.json
+.claude/worktrees
+docs/superpowers/
